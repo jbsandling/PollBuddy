@@ -877,6 +877,37 @@ router.post("/:id/groups", function (req, res) {
   return res.status(405).send(createResponse(null, "POST is not available for this route. Use GET."));
 });
 
+/**
+ * 
+ */
+router.get("/me", function (req,res) {
+  return res.status(200).send(createResponse(null,"Made it to Me"));
+  let retrieveUser = function(error, result) {
+    if(error) {
+      console.log("Database Error occurred while retrieveing user infromation");
+      console.error(error);
+      return res.status(500).send(createResponse(null, "An error occurred while retrieving user data"));
+    } else if(result === null) {
+      return res.status(401).send(createResponse(null,"Invalid credentials"));
+    } else {
+      console.log("trys to return");
+      return res.status(200).send(createResponse({
+        "firstName": result.FirstName,
+        "lastName": result.LastName,
+        "userName": result.UserName,
+        "email": result.Email,
+        "schoolAffiliation" : result.SchoolAffiliation
+      }));
+    }
+  }
+  mongoConnection.getDB().collection("users").findOne({"UserName" : req.session.userData.UserName}, {
+    _id: true, FirstName: true, LastName: true, UserName: true, Email: true, SchoolAffiliation: true}, retrieveUser);
+});
+
+router.post("/me",function(req,res) {
+  return res.status(200).send(createResponse("Made it to Me POST"));
+});
+
 module.exports = router;
 
 // Middleware for getting user information
@@ -911,3 +942,6 @@ module.exports.user_middleware = function (req, res, next) {
 
   next();
 };
+
+
+
